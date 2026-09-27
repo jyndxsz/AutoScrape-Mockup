@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AutoScrape AI - Mobile Web App</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              dark: '#070a12',
+              card: '#0e1526',
+              border: '#1e293b',
+              blue: '#00d2ff',
+              glow: '#38bdf8',
+              accent: '#2563eb'
+            }
+          },
+          boxShadow: {
+            'glow-sm': '0 0 15px -3px rgba(56, 189, 248, 0.3)',
+            'glow-md': '0 0 25px -5px rgba(0, 210, 255, 0.4)',
+            'glow-btn': '0 0 20px 0px rgba(56, 189, 248, 0.5)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #070a12;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #38bdf8;
+    }
+
+    .glass-card {
+      background: rgba(14, 21, 38, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.15);
+    }
+
+    .glass-input {
+      background: rgba(7, 10, 18, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.2s ease;
+    }
+    .glass-input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+      outline: none;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+    .glow-bg {
+      animation: pulseGlow 6s infinite ease-in-out;
+    }
+
+    .scanline {
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0, 210, 255, 0.05) 50%,
+        rgba(0, 210, 255, 0.05)
+      );
+      background-size: 100% 4px;
+    }
+  </style>
+</head>
+<body class="bg-brand-dark text-slate-100 font-sans min-h-screen flex flex-col justify-between items-center selection:bg-brand-glow selection:text-black pb-8">
+
+  <!-- Ambient background glow blobs -->
+  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md h-96 bg-brand-accent/20 blur-[100px] pointer-events-none rounded-full glow-bg"></div>
+  <div class="fixed bottom-0 right-0 w-64 h-64 bg-brand-glow/10 blur-[80px] pointer-events-none rounded-full glow-bg"></div>
+
+  <!-- Main Mobile Container -->
+  <div class="w-full max-w-md px-4 pt-4 flex flex-col gap-5 z-10">
+
+    <!-- Header / Branding -->
+    <header class="flex justify-between items-center py-2 px-1">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-cyan-400 to-brand-glow p-[1.5px] shadow-glow-sm">
+          <div class="w-full h-full bg-brand-dark rounded-[10px] flex items-center justify-center">
+            <i class="fa-solid fa-spider text-brand-glow text-lg"></i>
+          </div>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight tracking-wide flex items-center gap-1.5">
+            AutoScrape <span class="text-xs px-1.5 py-0.5 rounded-md bg-brand-glow/10 text-brand-glow border border-brand-glow/30 font-mono">AI 2.0</span>
+          </h1>
+          <p class="text-[11px] text-slate-400">Automated Data Extraction Engine</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">Online</span>
+      </div>
+    </header>
+
+    <!-- Metrics Ticker Card -->
+    <div class="grid grid-cols-3 gap-2">
+      <div class="glass-card rounded-xl p-2.5 text-center flex flex-col justify-center">
+        <span class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Active Bot</span>
+        <span class="text-base font-bold text-brand-glow mt-0.5 font-mono" id="stat-active">1,248</span>
+      </div>
+      <div class="glass-card rounded-xl p-2.5 text-center flex flex-col justify-center">
+        <span class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Speed</span>
+        <span class="text-base font-bold text-cyan-300 mt-0.5 font-mono" id="stat-speed">4.8k/s</span>
+      </div>
+      <div class="glass-card rounded-xl p-2.5 text-center flex flex-col justify-center">
+        <span class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Success</span>
+        <span class="text-base font-bold text-emerald-400 mt-0.5 font-mono">99.8%</span>
+      </div>
+    </div>
+
+    <!-- Interactive Demo Card -->
+    <section class="glass-card rounded-2xl p-4 shadow-glow-sm relative overflow-hidden">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-terminal text-brand-glow text-xs"></i>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-300">Live Scraper Simulator</h2>
+        </div>
+        <span class="text-[10px] text-slate-500 font-mono">v2.4.0-cloud</span>
+      </div>
+
+      <!-- Scraper Controls -->
+      <div class="space-y-3">
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Target Website URL</label>
+          <div class="relative">
+            <input type="text" id="target-url" value="https://shop.example.com/products" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-slate-200 pr-16 font-mono">
+            <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">SSL OK</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Target Preset</label>
+            <select id="preset-select" class="w-full glass-input rounded-xl px-2.5 py-2 text-xs text-slate-300 cursor-pointer">
+              <option value="ecommerce">E-Commerce Products</option>
+              <option value="realestate">Real Estate Listings</option>
+              <option value="social">Social Media Posts</option>
+              <option value="crypto">Crypto Live Prices</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">Proxy Speed</label>
+            <div class="glass-input rounded-xl px-3 py-1.5 flex items-center justify-between">
+              <input type="range" id="speed-slider" min="1" max="10" value="8" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-glow">
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Terminal Log Window -->
+        <div class="bg-black/80 rounded-xl p-3 border border-slate-800 font-mono text-[11px] h-28 overflow-y-auto scanline relative flex flex-col justify-end" id="console-logs">
+          <div class="text-slate-500">[SYSTEM] Ready to launch scraper...</div>
+          <div class="text-slate-500">[PROXY] 450 Residential Proxies Initialized.</div>
+        </div>
+
+        <button id="run-btn" onclick="triggerTestScrape()" class="w-full bg-gradient-to-r from-blue-600 to-brand-glow hover:from-blue-500 hover:to-cyan-300 text-slate-950 font-bold py-2.5 rounded-xl shadow-glow-btn transition duration-200 active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
+          <i class="fa-solid fa-bolt"></i>
+          <span>Launch Test Scrape</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Authentication Card -->
+    <section class="glass-card rounded-2xl p-5 shadow-xl relative">
+      
+      <!-- Tab Switcher -->
+      <div class="flex p-1 bg-brand-dark/80 rounded-xl border border-slate-800 mb-5">
+        <button id="tab-signin" onclick="switchTab('signin')" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-brand-glow bg-brand-card shadow-sm">
+          Sign In
+        </button>
+        <button id="tab-signup" onclick="switchTab('signup')" class="flex-1 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all">
+          Sign Up
+        </button>
+      </div>
+
+      <!-- SIGN IN FORM -->
+      <form id="form-signin" onsubmit="event.preventDefault(); handleAuth('Signin');" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
+          <div class="relative">
+            <i class="fa-regular fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="email" required placeholder="developer@autoscrape.ai" class="w-full glass-input rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-100 placeholder-slate-600">
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="text-xs font-medium text-slate-300">Password</label>
+            <a href="#" class="text-[11px] text-brand-glow hover:underline">Forgot?</a>
+          </div>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="password" required placeholder="••••••••••••" class="w-full glass-input rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-100 placeholder-slate-600">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked class="rounded border-slate-700 bg-slate-900 text-brand-glow focus:ring-0 cursor-pointer w-3.5 h-3.5">
+            <span>Remember device</span>
+          </label>
+        </div>
+
+        <button type="submit" class="w-full bg-brand-glow hover:bg-cyan-300 text-slate-950 font-bold py-3 rounded-xl shadow-glow-btn transition duration-200 active:scale-[0.98] text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+          <span>Sign In to Dashboard</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+
+        <!-- Social Logins -->
+        <div class="pt-2">
+          <div class="relative flex py-2 items-center">
+            <div class="flex-grow border-t border-slate-800"></div>
+            <span class="flex-shrink mx-3 text-[10px] text-slate-500 uppercase font-medium">Or continue with</span>
+            <div class="flex-grow border-t border-slate-800"></div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5 mt-2">
+            <button type="button" onclick="handleSocial('Google')" class="glass-input hover:border-slate-600 py-2 rounded-xl flex items-center justify-center gap-2 text-xs text-slate-300 transition">
+              <i class="fa-brands fa-google text-red-400"></i>
+              <span>Google</span>
+            </button>
+            <button type="button" onclick="handleSocial('GitHub')" class="glass-input hover:border-slate-600 py-2 rounded-xl flex items-center justify-center gap-2 text-xs text-slate-300 transition">
+              <i class="fa-brands fa-github text-slate-100"></i>
+              <span>GitHub</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- SIGN UP FORM -->
+      <form id="form-signup" onsubmit="event.preventDefault(); handleAuth('Signup');" class="space-y-3.5 hidden">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
+          <div class="relative">
+            <i class="fa-regular fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="text" required placeholder="Alex Mercer" class="w-full glass-input rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-100 placeholder-slate-600">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Work Email</label>
+          <div class="relative">
+            <i class="fa-regular fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="email" required placeholder="alex@company.com" class="w-full glass-input rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-100 placeholder-slate-600">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="password" required placeholder="Min 8 characters" class="w-full glass-input rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-100 placeholder-slate-600">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">API Plan Tier</label>
+          <select class="w-full glass-input rounded-xl px-3 py-2.5 text-xs text-slate-200 cursor-pointer">
+            <option value="free">Starter Free Tier (1,000 req/mo)</option>
+            <option value="pro">Pro Developer ($29/mo - 100k req)</option>
+            <option value="enterprise">Enterprise Scale (Custom)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-brand-glow hover:from-blue-500 hover:to-cyan-300 text-slate-950 font-bold py-3 rounded-xl shadow-glow-btn transition duration-200 active:scale-[0.98] text-xs uppercase tracking-wider flex items-center justify-center gap-2 mt-2">
+          <span>Create Free Account</span>
+          <i class="fa-solid fa-user-plus text-xs"></i>
+        </button>
+      </form>
+    </section>
+
+    <!-- Feature Highlights -->
+    <section class="space-y-2.5">
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 px-1">Engine Features</h3>
+      
+      <div class="grid grid-cols-3 gap-2">
+        <div class="glass-card p-3 rounded-xl flex flex-col items-center text-center">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-brand-glow flex items-center justify-center mb-2 border border-blue-500/20">
+            <i class="fa-solid fa-shield-halved text-xs"></i>
+          </div>
+          <span class="text-[11px] font-medium text-slate-200 leading-tight">Anti-Bot Bypass</span>
+          <span class="text-[9px] text-slate-500 mt-1">Cloudflare & CAPTCHA</span>
+        </div>
+
+        <div class="glass-card p-3 rounded-xl flex flex-col items-center text-center">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-300 flex items-center justify-center mb-2 border border-cyan-500/20">
+            <i class="fa-solid fa-network-wired text-xs"></i>
+          </div>
+          <span class="text-[11px] font-medium text-slate-200 leading-tight">Smart Proxies</span>
+          <span class="text-[9px] text-slate-500 mt-1">Auto-Rotating Residential</span>
+        </div>
+
+        <div class="glass-card p-3 rounded-xl flex flex-col items-center text-center">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-2 border border-emerald-500/20">
+            <i class="fa-solid fa-file-code text-xs"></i>
+          </div>
+          <span class="text-[11px] font-medium text-slate-200 leading-tight">JSON & CSV</span>
+          <span class="text-[9px] text-slate-500 mt-1">Instant Webhooks & Export</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-[11px] text-slate-600">
+      <p>© 2026 AutoScrape AI Inc. • Mobile App Preview</p>
+    </footer>
+
+  </div>
+
+  <script>
+    // Tab Switcher
+    function switchTab(tab) {
+      const signinForm = document.getElementById('form-signin');
+      const signupForm = document.getElementById('form-signup');
+      const tabSigninBtn = document.getElementById('tab-signin');
+      const tabSignupBtn = document.getElementById('tab-signup');
+
+      if (tab === 'signin') {
+        signinForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+        tabSigninBtn.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-brand-glow bg-brand-card shadow-sm";
+        tabSignupBtn.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all";
+      } else {
+        signupForm.classList.remove('hidden');
+        signinForm.classList.add('hidden');
+        tabSignupBtn.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-brand-glow bg-brand-card shadow-sm";
+        tabSigninBtn.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-400 hover:text-slate-200 transition-all";
+      }
+    }
+
+    // Scraper Simulation Logic
+    let isRunning = false;
+
+    function triggerTestScrape() {
+      if (isRunning) return;
+      isRunning = true;
+
+      const runBtn = document.getElementById('run-btn');
+      const consoleBox = document.getElementById('console-logs');
+      const targetUrl = document.getElementById('target-url').value;
+      const speed = document.getElementById('speed-slider').value;
+
+      runBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Running Scraper...`;
+      runBtn.classList.add('opacity-80');
+
+      const logs = [
+        `[INIT] Handshaking target ${targetUrl}...`,
+        `[PROXY] Routing request through US-East residential pool...`,
+        `[BYPASS] Bypassing Cloudflare JavaScript Challenge...`,
+        `[PARSER] Extracting DOM nodes via AI Selector Engine...`,
+        `[SUCCESS] Scraped 1,420 items in ${(3.2 / speed).toFixed(2)}s!`,
+        `[EXPORT] Streamed payload to JSON storage bucket.`
+      ];
+
+      consoleBox.innerHTML = '';
+      let index = 0;
+
+      const interval = setInterval(() => {
+        if (index < logs.length) {
+          const logItem = document.createElement('div');
+          
+          if (logs[index].includes('SUCCESS')) {
+            logItem.className = 'text-emerald-400 font-semibold';
+          } else if (logs[index].includes('BYPASS')) {
+            logItem.className = 'text-cyan-300';
+          } else {
+            logItem.className = 'text-slate-400';
+          }
+
+          logItem.innerText = logs[index];
+          consoleBox.appendChild(logItem);
+          consoleBox.scrollTop = consoleBox.scrollHeight;
+          index++;
+        } else {
+          clearInterval(interval);
+          isRunning = false;
+          runBtn.innerHTML = `<i class="fa-solid fa-bolt"></i> Launch Test Scrape`;
+          runBtn.classList.remove('opacity-80');
+
+          const activeStat = document.getElementById('stat-active');
+          const current = parseInt(activeStat.innerText.replace(',', ''));
+          activeStat.innerText = (current + Math.floor(Math.random() * 50 + 10)).toLocaleString();
+        }
+      }, 500);
+    }
+
+    function handleAuth(type) {
+      alert(`${type} successful!`);
+    }
+
+    function handleSocial(provider) {
+      alert(`Connecting to ${provider} OAuth...`);
+    }
+  </script>
+</body>
+</html>
+
